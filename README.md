@@ -7,10 +7,15 @@
 </p>
 
 <p align="center">
+  <a href="http://193.180.210.78:3000">🌐 Live demo</a> ·
   <a href="#quickstart">🚀 Quickstart</a> ·
   <a href="docs/adr/">Architecture</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
   <a href="TODO.md">Roadmap</a>
+</p>
+
+<p align="center">
+  <em>Демо-инсталляция на <a href="http://193.180.210.78:3000">193.180.210.78:3000</a> — можно зарегистрироваться и потрогать редактор, AI-обзоры и MCP-tools вживую.</em>
 </p>
 
 <p align="center">
@@ -57,6 +62,8 @@
 ### AI-обзоры — Markdown + KaTeX внутри отдельной секции, оригинал не тронут
 
 <img src="docs/screenshots/ai-review.png" width="920" alt="AI-обзоры"/>
+
+*На скрине — реальный ответ Claude Haiku 4.5 через OpenRouter: рендер формулы Байеса `P(θ|D) = P(D|θ)P(θ)/P(D)` в KaTeX, pro/con-аргументы за гипотезу байесовского мозга. Бейджи «Сделать резюме» и `anthropic/claude-haiku-4.5` показывают action и модель. Кнопки «Редактировать» / «Скрыть» — для автора и модератора; оригинал статьи не изменяется.*
 
 ### Публичный профиль — ORCID badge, соц-ссылки, статистика активности, последние темы
 
