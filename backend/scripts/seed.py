@@ -261,6 +261,79 @@ TOPICS_SPEC: list[dict[str, Any]] = [
         "title": "Еженедельный journal club: июнь 2026",
         "kind": TopicKind.NEWS,
     },
+    # --- Extra news topics (short blueprints, filler content for listings) ---
+    {
+        "section_slug": "computational-neuroscience",
+        "slug": "attractor-dynamics-motor-cortex",
+        "title": "Attractor dynamics в моторной коре: обзор 2026",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "computational-neuroscience",
+        "slug": "bayesian-brain-hypothesis-review",
+        "title": "Bayesian brain hypothesis: критический обзор",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "neuroimaging",
+        "slug": "resting-state-fmri-networks",
+        "title": "Resting-state fMRI: 15 лет спустя",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "neuroimaging",
+        "slug": "glm-vs-mvpa-2026",
+        "title": "GLM vs MVPA: когда какой подход",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "cognitive-neuroscience",
+        "slug": "attention-and-consciousness",
+        "title": "Внимание и сознание: нейронные корреляты",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "cognitive-neuroscience",
+        "slug": "dual-process-theory-decisions",
+        "title": "Dual-process теории принятия решений",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "machine-learning-brain",
+        "slug": "deep-generative-models-eeg",
+        "title": "Deep generative models для генерации EEG",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "machine-learning-brain",
+        "slug": "graph-nets-on-connectomes",
+        "title": "Graph neural nets на коннектомах",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "methods-tools",
+        "slug": "pytorch-vs-jax-for-neuro",
+        "title": "PyTorch vs JAX для нейронауки в 2026",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "methods-tools",
+        "slug": "open-neurodata-datasets",
+        "title": "Open neurodata: датасеты, которыми стоит пользоваться",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "news-discussion",
+        "slug": "weekly-arxiv-digest",
+        "title": "arXiv-дайджест недели: новинки q-bio.NC",
+        "kind": TopicKind.NEWS,
+    },
+    {
+        "section_slug": "news-discussion",
+        "slug": "neurips-2026-highlights",
+        "title": "NeurIPS 2026: highlights от neuro-track",
+        "kind": TopicKind.NEWS,
+    },
 ]
 
 
@@ -959,6 +1032,48 @@ def _picsum(seed: str) -> str:
     return f"https://picsum.photos/seed/{seed}/800/450"
 
 
+def _build_short_news_doc(
+    *,
+    title: str,
+    summary: str,
+    section_intro: str,
+    subheading: str,
+    bullets: list[str],
+    formula_latex: str,
+    image_attachment_id: UUID,
+    image_seed: str,
+    image_caption: str,
+    closing: str,
+) -> dict[str, Any]:
+    """A shorter but still content-rich blueprint for secondary news posts.
+
+    Roughly 7 blocks vs the full 18-block ``_build_article_doc`` — meant for
+    extra topics inside a section so listing UI looks populated without
+    writing full editorial copy for each.
+    """
+    return doc(
+        [
+            heading(1, title),
+            paragraph(
+                [
+                    text_node(summary, marks=[{"type": "italic"}]),
+                ]
+            ),
+            paragraph([text_node(section_intro)]),
+            heading(2, subheading),
+            bullet_list(bullets),
+            math_block(formula_latex, display=True),
+            image_block(
+                image_attachment_id,
+                alt="Иллюстрация",
+                caption=image_caption,
+                seed=image_seed,
+            ),
+            paragraph([text_node(closing)]),
+        ]
+    )
+
+
 async def _make_seed_attachment(
     db: AsyncSession, uploader: User, seed: str
 ) -> UUID:
@@ -1643,6 +1758,237 @@ ARTICLE_BLUEPRINTS: list[dict[str, Any]] = [
 ]
 
 
+SHORT_ARTICLE_BLUEPRINTS: list[dict[str, Any]] = [
+    # computational-neuroscience — attractor dynamics
+    {
+        "topic_slug": "attractor-dynamics-motor-cortex",
+        "author_username": "carla_compneuro",
+        "title": "Attractor dynamics в моторной коре: обзор 2026",
+        "summary": "Как популяции нейронов организуют движение через низкоразмерные аттракторы.",
+        "section_intro": "Обзор недавних работ, показывающих, что подготовка движения реализуется через ротационные аттракторы в M1, а не последовательное «включение» нейронов.",
+        "subheading": "Ключевые находки",
+        "bullets": [
+            "Vyas et al. (2020) — универсальность rotational dynamics",
+            "Churchland lab — подготовительная активность живёт на своём подпространстве",
+            "Aoi & Kao (2020) — иерархия временных масштабов",
+        ],
+        "formula_latex": r"\dot{\mathbf{x}} = -\mathbf{x} + W\varphi(\mathbf{x}) + \mathbf{u}(t)",
+        "image_seed": "attractor-motor",
+        "image_caption": "Схема rotational subspace в M1",
+        "closing": "Открытый вопрос: universal ли эти паттерны для всех приматов?",
+    },
+    # computational-neuroscience — bayesian brain
+    {
+        "topic_slug": "bayesian-brain-hypothesis-review",
+        "author_username": "alice_neuro",
+        "title": "Bayesian brain hypothesis: критический обзор",
+        "summary": "Что удалось подтвердить, что осталось hand-wavy.",
+        "section_intro": "Гипотеза байесовского мозга — красивая, но эмпирические тесты на удивление слабые. Разберёмся почему.",
+        "subheading": "Аргументы за и против",
+        "bullets": [
+            "PRO: perceptual biases соответствуют байесовским priors (Weiss et al.)",
+            "PRO: neural correlates uncertainty (Ma & Jazayeri, 2014)",
+            "CON: экологическая валидность priors под вопросом",
+            "CON: cortical circuits не реализуют exact Bayesian inference",
+        ],
+        "formula_latex": r"P(\theta|D) = \frac{P(D|\theta)\,P(\theta)}{P(D)}",
+        "image_seed": "bayes-brain",
+        "image_caption": "Иерархия предсказаний в кортикальных слоях",
+        "closing": "TL;DR: скорее эвристика ближе к MAP, чем полноценная Bayesian inference.",
+    },
+    # neuroimaging — resting state
+    {
+        "topic_slug": "resting-state-fmri-networks",
+        "author_username": "bob_imaging",
+        "title": "Resting-state fMRI: 15 лет спустя",
+        "summary": "Что мы узнали про default mode network и что она не показывает.",
+        "section_intro": "После работ Raichle 2001 rs-fMRI взлетел. Обсудим, что action items выдержали проверку временем.",
+        "subheading": "Устоявшиеся находки",
+        "bullets": [
+            "DMN стабильно репродуцируется в разных когортах",
+            "Функциональные сети коррелируют со структурой (DWI)",
+            "Individual differences в connectivity ↔ поведение (Finn 2015)",
+            "Reliability низкая на коротких скан-сессиях (<10 min)",
+        ],
+        "formula_latex": r"r_{ij} = \frac{\sum_t (x_i^t - \bar{x_i})(x_j^t - \bar{x_j})}{\sigma_{x_i}\sigma_{x_j}}",
+        "image_seed": "rsfmri-networks",
+        "image_caption": "7-network parcellation Yeo et al.",
+        "closing": "Что дальше: наивная functional connectivity как биомаркер уходит, on-topic — dynamic + graph-based метрики.",
+    },
+    # neuroimaging — GLM vs MVPA
+    {
+        "topic_slug": "glm-vs-mvpa-2026",
+        "author_username": "bob_imaging",
+        "title": "GLM vs MVPA: когда какой подход",
+        "summary": "Univariate vs multivariate — не заменяют друг друга, а решают разные вопросы.",
+        "section_intro": "Практический guide: когда достаточно GLM, а когда MVPA даёт содержательный вклад.",
+        "subheading": "Что выбирать",
+        "bullets": [
+            "GLM: локализация активности, hypothesis-driven contrasts",
+            "MVPA: представления, декодирование конкретных категорий",
+            "RSA (representational similarity): сравнение геометрий между модели/мозг",
+            "Не забывайте про cross-validation в MVPA — иначе overfitting",
+        ],
+        "formula_latex": r"\text{acc} = \frac{1}{k}\sum_{i=1}^{k}\mathbb{1}[\hat{y}_i = y_i]",
+        "image_seed": "glm-mvpa",
+        "image_caption": "GLM contrast map vs MVPA searchlight",
+        "closing": "Гибридные подходы (GLM + RSA) — самое интересное направление 2026.",
+    },
+    # cognitive-neuroscience — attention & consciousness
+    {
+        "topic_slug": "attention-and-consciousness",
+        "author_username": "eve_cognition",
+        "title": "Внимание и сознание: нейронные корреляты",
+        "summary": "Global workspace theory vs integrated information theory — status quo.",
+        "section_intro": "Обзор недавних экспериментов, которые тестируют GWT (Dehaene, Baars) vs IIT (Tononi) через adversarial collaborations.",
+        "subheading": "Adversarial предсказания",
+        "bullets": [
+            "GWT предсказывает ignition в front-parietal cortex",
+            "IIT предсказывает posterior hot zone",
+            "Ferrante et al. 2023 — данные не решают спор однозначно",
+            "Нужны более чувствительные paradigms",
+        ],
+        "formula_latex": r"\Phi = \min_{P \in \mathcal{P}} D_{KL}(p(X)\,\|\,p_P(X))",
+        "image_seed": "attention-conscious",
+        "image_caption": "Пре-регистрированные предсказания GWT vs IIT",
+        "closing": "Пока ни одна теория не «выиграла», но эксперименты становятся всё изящнее.",
+    },
+    # cognitive-neuroscience — dual process
+    {
+        "topic_slug": "dual-process-theory-decisions",
+        "author_username": "eve_cognition",
+        "title": "Dual-process теории принятия решений",
+        "summary": "Быстрое vs медленное мышление — что говорит нейронаука.",
+        "section_intro": "Kahneman прочно засел в поп-психологии. Что реально видно на fMRI и EEG?",
+        "subheading": "Что действительно бывает",
+        "bullets": [
+            "Автоматические ответы — быстрый striatal habit system",
+            "Аналитические — DLPFC + parietal control network",
+            "Переключение регулируется ACC (conflict monitoring)",
+            "Но: это не два бинарных «режима», а continuum",
+        ],
+        "formula_latex": r"V(a) = \sum_s P(s|a)\,U(s)",
+        "image_seed": "dual-process",
+        "image_caption": "System 1 vs System 2 схематически",
+        "closing": "Кризис репликации не миновал и эту область — треть популярных находок не воспроизводится.",
+    },
+    # machine-learning-brain — deep generative
+    {
+        "topic_slug": "deep-generative-models-eeg",
+        "author_username": "david_ml",
+        "title": "Deep generative models для генерации EEG",
+        "summary": "VAE, GAN, diffusion — что реально работает для нейросигналов.",
+        "section_intro": "Синтетические EEG-данные для аугментации, приватности и симуляции.",
+        "subheading": "Обзор архитектур",
+        "bullets": [
+            "GAN (Hartmann 2018) — реалистичные wavelets, но mode collapse",
+            "VAE — стабильно, но smooth signals без high-freq deталей",
+            "Diffusion (2023-2024) — SOTA по FID + spectral matching",
+            "Оценка качества всё ещё не решена — нет consensus metric",
+        ],
+        "formula_latex": r"\mathcal{L} = \mathbb{E}_{t,\epsilon}\|\epsilon - \epsilon_\theta(\mathbf{x}_t, t)\|^2",
+        "image_seed": "gen-eeg",
+        "image_caption": "Diffusion training loop для EEG",
+        "closing": "Downstream: augmented training + differential privacy — killer app.",
+    },
+    # machine-learning-brain — graph nets
+    {
+        "topic_slug": "graph-nets-on-connectomes",
+        "author_username": "david_ml",
+        "title": "Graph neural nets на коннектомах",
+        "summary": "GNN для brain connectivity: обзор моделей + подводные камни.",
+        "section_intro": "Мозг — граф. GNN — естественный fit. Но результаты пока mixed.",
+        "subheading": "Что важно помнить",
+        "bullets": [
+            "GCN / GAT / GraphSAGE — стандартный zoo",
+            "Проблема: маленькие датасеты (n<1000 участников)",
+            "Interpretability методов слабая: attention veghts != causal",
+            "Comparison to simple baselines редко fair",
+        ],
+        "formula_latex": r"\mathbf{h}_v^{(l+1)} = \sigma\!\left(\sum_{u \in \mathcal{N}(v)} \frac{1}{c_{uv}} W^{(l)} \mathbf{h}_u^{(l)}\right)",
+        "image_seed": "gnn-connectome",
+        "image_caption": "Message passing на brain graph",
+        "closing": "Reproducibility crisis: publications не воспроизводятся, если убрать один трюк.",
+    },
+    # methods-tools — pytorch vs jax
+    {
+        "topic_slug": "pytorch-vs-jax-for-neuro",
+        "author_username": "frank_methods",
+        "title": "PyTorch vs JAX для нейронауки в 2026",
+        "summary": "Куда двигаться neuro-ML коммьюнити?",
+        "section_intro": "После нескольких лет борьбы: PyTorch уверенно лидирует по ecosystem, но JAX выигрывает в моделирующих задачах.",
+        "subheading": "Кому что",
+        "bullets": [
+            "PyTorch: prototyping, transfer learning, стандартный ML pipeline",
+            "JAX: differentiable simulation (jax.grad + jit), neuroscience-specific",
+            "Julia: остался в нише, но растёт в neurosimulations",
+            "TensorFlow: практически ушёл из neuro-research",
+        ],
+        "formula_latex": r"\theta_{t+1} = \theta_t - \eta \nabla_\theta \mathcal{L}(\theta_t)",
+        "image_seed": "pytorch-jax",
+        "image_caption": "Benchmark: forward + backward на NeurIPS benchmark",
+        "closing": "Для neuromechanistic моделей JAX — уже де-факто стандарт. Для applied ML — PyTorch.",
+    },
+    # methods-tools — open datasets
+    {
+        "topic_slug": "open-neurodata-datasets",
+        "author_username": "frank_methods",
+        "title": "Open neurodata: датасеты, которыми стоит пользоваться",
+        "summary": "Систематизированный обзор доступных нейродатасетов на 2026.",
+        "section_intro": "Если пишете paper с публикацией кода, вот куда посмотреть.",
+        "subheading": "Ключевые репозитории",
+        "bullets": [
+            "Human Connectome Project — sMRI + dMRI + rs-fMRI n=1200",
+            "UK Biobank — n=100000+, но access controlled",
+            "OpenNeuro — стандартизация BIDS, любые модальности",
+            "MOABB — motor imagery EEG benchmarks",
+            "NWB (Neurodata Without Borders) — становится стандартом",
+        ],
+        "formula_latex": r"\text{coverage} = \frac{|\{\text{datasets with FAIR compliance}\}|}{|\text{all datasets}|}",
+        "image_seed": "open-neurodata",
+        "image_caption": "Ecosystem открытых нейродатасетов",
+        "closing": "Reminder: препринт без reproducible dataset & code — этика 2020, не 2026.",
+    },
+    # news-discussion — arxiv digest
+    {
+        "topic_slug": "weekly-arxiv-digest",
+        "author_username": "henry_news",
+        "title": "arXiv-дайджест недели: новинки q-bio.NC",
+        "summary": "Обзор трёх интересных препринтов этой недели.",
+        "section_intro": "Отбирал по критерию «релевантно + методологически чисто».",
+        "subheading": "Топ-3 недели",
+        "bullets": [
+            "Neural population dynamics during reaching movements — новый multi-region recording",
+            "Predictive coding in early visual cortex — refined MEG evidence",
+            "Cortical connectomics at 1000 neurons scale — MICrONS follow-up",
+        ],
+        "formula_latex": r"H(P||Q) = \sum_i P(i) \log\frac{P(i)}{Q(i)}",
+        "image_seed": "arxiv-digest",
+        "image_caption": "Trending темы q-bio.NC (последние 7 дней)",
+        "closing": "Комментируйте, что показалось интересным — соберём коллективный ranking.",
+    },
+    # news-discussion — neurips
+    {
+        "topic_slug": "neurips-2026-highlights",
+        "author_username": "henry_news",
+        "title": "NeurIPS 2026: highlights от neuro-track",
+        "summary": "Что смотреть из NeurIPS 2026 сессии по нейронаукам.",
+        "section_intro": "Тезисы с neuro-related треков конференции.",
+        "subheading": "Заслуживают внимания",
+        "bullets": [
+            "Workshop «Brain-Score» — метрика для сравнения модель↔мозг",
+            "Oral: contrastive learning на brain-behaviour paired data",
+            "Poster: MERLIN — новый фреймворк для generative brain models",
+            "Panel: interpretability of DNNs modeling visual cortex",
+        ],
+        "formula_latex": r"L_{\text{NCE}} = -\mathbb{E}_{(x,y^+)}\log\frac{e^{f(x,y^+)}}{\sum_{y}e^{f(x,y)}}",
+        "image_seed": "neurips-2026",
+        "image_caption": "Word cloud neuroscience mentions в NeurIPS 2026 papers",
+        "closing": "Сохраняйте темы, обменяемся ссылками — соберу компилацию.",
+    },
+]
+
+
 async def create_articles(
     db: AsyncSession,
     articles_svc: ArticleService,
@@ -1693,6 +2039,45 @@ async def create_articles(
         # Backdate ``published_at`` so the feed has variety. Within the
         # last 1–30 days, deterministic via random.seed(42).
         days_ago = random.randint(1, 30)
+        ts = datetime.now(UTC) - timedelta(days=days_ago)
+        await db.execute(
+            update(Article)
+            .where(Article.id == published.id)
+            .values(published_at=ts)
+        )
+        await db.flush()
+        created.append(published)
+
+    # Short blueprints — filler content so section listings show ≥3 items.
+    for blueprint in SHORT_ARTICLE_BLUEPRINTS:
+        author = users[blueprint["author_username"]]
+        topic = topics[blueprint["topic_slug"]]
+        image_attachment_id = await _make_seed_attachment(
+            db, author, blueprint["image_seed"]
+        )
+        content_dict = _build_short_news_doc(
+            title=blueprint["title"],
+            summary=blueprint["summary"],
+            section_intro=blueprint["section_intro"],
+            subheading=blueprint["subheading"],
+            bullets=blueprint["bullets"],
+            formula_latex=blueprint["formula_latex"],
+            image_attachment_id=image_attachment_id,
+            image_seed=blueprint["image_seed"],
+            image_caption=blueprint["image_caption"],
+            closing=blueprint["closing"],
+        )
+        article, _ = await articles_svc.create_article(
+            author,
+            topic.id,
+            ArticleCreate(
+                title=blueprint["title"],
+                summary=blueprint["summary"],
+                content=DocSchema.model_validate(content_dict),
+            ),
+        )
+        published, _ = await articles_svc.publish_article(author, article.id)
+        days_ago = random.randint(1, 14)
         ts = datetime.now(UTC) - timedelta(days=days_ago)
         await db.execute(
             update(Article)
