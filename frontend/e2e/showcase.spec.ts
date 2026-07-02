@@ -2,7 +2,10 @@ import { test } from '@playwright/test'
 
 const SITE = 'http://193.180.210.78:3000'
 const API = 'http://193.180.210.78:8000'
-const CLIP = { x: 0, y: 0, width: 1280, height: 720 }
+// Content-height clip — keeps README grid symmetric across pages that
+// have different amounts of content. 540px covers the header + first
+// row of cards / tabs / hero on every showcase page.
+const CLIP = { x: 0, y: 0, width: 1280, height: 540 }
 
 test.describe('Showcase screenshots for README', () => {
   test.use({ viewport: { width: 1280, height: 800 } })
