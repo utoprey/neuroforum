@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-lint:
+    name: Backend · ruff + mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Install deps
+        run: uv sync --frozen
+      - name: ruff
+        run: uv run ruff check backend/app backend/tests backend/scripts
+      - name: mypy
+        run: uv run mypy backend/app
+        continue-on-error: true # gradual — a few legacy modules still have gaps
+
+  backend-tests:
+    name: Backend · pytest
+    runs-on: ubuntu-latest
+    services:
+      # Postgres side-car so testcontainers-fixtures aren't needed in CI.
+      # The test conftest picks up `TEST_DATABASE_URL` if set; falls back to
+      # spinning its own container otherwise.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: forum
+          POSTGRES_PASSWORD: forum
+          POSTGRES_DB: forum
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U forum -d forum"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Install deps
+        run: uv sync --frozen
+      - name: pytest (skip integration bits requiring MinIO / RabbitMQ)
+        env:
+          TEST_DATABASE_URL: postgresql+asyncpg://forum:forum@localhost:5432/forum
+        run: uv run pytest backend/tests -x --tb=short -q --ignore=backend/tests/integration
+
+  frontend:
+    name: Frontend · typecheck + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: typecheck
+        run: pnpm typecheck
+      - name: build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+        run: pnpm build

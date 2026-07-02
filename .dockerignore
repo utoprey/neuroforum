@@ -1,0 +1,33 @@
+.git
+.gitignore
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Frontend caches
+frontend/node_modules
+frontend/.next
+frontend/playwright-report
+frontend/test-results
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+
+# Local env (use env_file in compose instead)
+.env
+.env.*
+!.env.example
+
+# Docs (not needed in container build)
+docs/
+*.md
+!README.md

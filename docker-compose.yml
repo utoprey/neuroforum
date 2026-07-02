@@ -1,0 +1,201 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: forum-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: forum
+      POSTGRES_PASSWORD: forum
+      POSTGRES_DB: forum
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forum -d forum"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: forum-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: forum-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: forum-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      # Both fall back for pure-local dev; override in `.env` for anything
+      # public. MinIO refuses to start with a password shorter than 8 chars.
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: forum-backend:latest
+    container_name: forum-backend
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Override host-only defaults so the container talks to siblings.
+      DATABASE_URL: postgresql+asyncpg://forum:forum@postgres:5432/forum
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      MINIO_ENDPOINT: minio:9000
+      MINIO_PUBLIC_BASE_URL: http://localhost:9000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    image: forum-backend:latest
+    container_name: forum-worker
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://forum:forum@postgres:5432/forum
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      MINIO_ENDPOINT: minio:9000
+    # Skip alembic-upgrade entrypoint, just run dramatiq directly.
+    entrypoint: []
+    command:
+      - dramatiq
+      - app.workers
+      - --processes
+      - "1"
+      - --threads
+      - "2"
+    # Override the inherited HEALTHCHECK curl (this process doesn't serve HTTP)
+    # with a lightweight process-presence check.
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'dramatiq app.workers' >/dev/null"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+  mcp-server:
+    # Reuses the backend image — same Python env, just a different
+    # entrypoint. Listens on :8001/mcp and authenticates each request via
+    # the X-Bot-Token header (see app/mcp_server/auth.py).
+    image: forum-backend:latest
+    container_name: forum-mcp-server
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://forum:forum@postgres:5432/forum
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+    # Skip the alembic-upgrade entrypoint — backend already ran it. The
+    # MCP server is read/write but doesn't manage schema migrations.
+    entrypoint: []
+    command: ["python", "-m", "app.mcp_server"]
+    ports:
+      - "8001:8001"
+    # MCP-сервер слушает HTTP+SSE на :8001/mcp — 401 без токена это нормально
+    # и уже подтверждает, что процесс жив.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -o /dev/null -w '%{http_code}' http://localhost:8001/mcp | grep -qE '^(200|401|405)$'"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+  frontend:
+    image: forum-frontend:latest
+    container_name: forum-frontend
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+      args:
+        # Browser hits localhost:8000 from the host machine, not from the
+        # docker network. Override at build time for non-localhost deploys.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  pg_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:
