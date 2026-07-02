@@ -7,9 +7,9 @@
 </p>
 
 <p align="center">
-  <a href="http://193.180.210.78:3000">🌐 <b>Live demo</b></a> ·
-  <a href="http://193.180.210.78:8000/docs">Swagger API</a> ·
+  <a href="#quickstart">🚀 Quickstart</a> ·
   <a href="docs/adr/">Architecture</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
   <a href="TODO.md">Roadmap</a>
 </p>
 
@@ -23,7 +23,7 @@
   <a href="#stack"><img src="https://img.shields.io/badge/TipTap-ProseMirror-583cec" alt="TipTap"/></a>
   <a href="#stack"><img src="https://img.shields.io/badge/MCP-server-000" alt="MCP"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen" alt="MIT"/></a>
-  <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-passing-2ea44f" alt="CI"/></a>
+  <a href="https://github.com/utoprey/neuroforum/actions/workflows/ci.yml"><img src="https://github.com/utoprey/neuroforum/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
 </p>
 
 ## Что интересного
@@ -42,39 +42,36 @@
 
 ## Скриншоты
 
-<table>
-  <tr>
-    <td><img src="docs/screenshots/sections.png" width="450" alt="Разделы"/></td>
-    <td><img src="docs/screenshots/section.png" width="450" alt="Раздел с 4 категориями"/></td>
-  </tr>
-  <tr>
-    <td><b>Список разделов</b> с описаниями и slug-URL</td>
-    <td><b>Раздел</b> с табами Новости / Обсуждения / Помощь / Флуд</td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/article.png" width="450" alt="Статья с математикой"/></td>
-    <td><img src="docs/screenshots/ai-review.png" width="450" alt="AI-обзоры"/></td>
-  </tr>
-  <tr>
-    <td><b>Статья</b> с LaTeX-формулами, code-блоками, callout'ами и картинками</td>
-    <td><b>AI-обзоры</b> — Markdown + KaTeX внутри отдельной секции, оригинал не тронут</td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/profile.png" width="450" alt="Профиль"/></td>
-    <td><img src="docs/screenshots/credentials.png" width="450" alt="API-ключи"/></td>
-  </tr>
-  <tr>
-    <td><b>Публичный профиль</b> — ORCID badge, соц-ссылки, статистика активности, последние темы</td>
-    <td><b>API-ключи</b> — BYO OpenRouter, Fernet-шифрование, месячные бюджеты</td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center"><b>С телефона</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/mobile-home.png" width="300" alt="Мобилка — главная"/></td>
-    <td><img src="docs/screenshots/mobile-article.png" width="300" alt="Мобилка — статья"/></td>
-  </tr>
-</table>
+### Список разделов с описаниями и slug-URL
+
+<img src="docs/screenshots/sections.png" width="920" alt="Разделы"/>
+
+### Раздел с табами Новости / Обсуждения / Помощь / Флуд
+
+<img src="docs/screenshots/section.png" width="920" alt="Раздел с 4 категориями"/>
+
+### Статья с LaTeX-формулами, code-блоками, callout'ами и картинками
+
+<img src="docs/screenshots/article.png" width="920" alt="Статья с математикой"/>
+
+### AI-обзоры — Markdown + KaTeX внутри отдельной секции, оригинал не тронут
+
+<img src="docs/screenshots/ai-review.png" width="920" alt="AI-обзоры"/>
+
+### Публичный профиль — ORCID badge, соц-ссылки, статистика активности, последние темы
+
+<img src="docs/screenshots/profile.png" width="920" alt="Профиль"/>
+
+### API-ключи — BYO OpenRouter, Fernet-шифрование, месячные бюджеты
+
+<img src="docs/screenshots/credentials.png" width="920" alt="API-ключи"/>
+
+### С телефона
+
+<p>
+  <img src="docs/screenshots/mobile-home.png" width="320" alt="Мобилка — главная"/>
+  <img src="docs/screenshots/mobile-article.png" width="320" alt="Мобилка — статья"/>
+</p>
 
 ## Stack
 
