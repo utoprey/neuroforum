@@ -59,7 +59,7 @@ test.describe('Showcase screenshots for README', () => {
     await page.evaluate(() => {
       const el = document.querySelector('[data-testid="ai-reviews-section"]') as HTMLElement | null
       if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 20
+        const y = el.getBoundingClientRect().top + window.scrollY - 80
         window.scrollTo({ top: y, behavior: 'instant' as ScrollBehavior })
       }
     })

@@ -27,6 +27,7 @@ from __future__ import annotations
 import asyncio
 import random
 import sys
+import zlib
 from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -947,7 +948,6 @@ def _build_article_doc(
     link_href: str,
     link_text: str,
     conclusion: str,
-    inline_math: str,
 ) -> dict[str, Any]:
     """Compose a realistic ProseMirror doc with every required block type."""
     paragraph_with_mentions: list[dict[str, Any]] = [
@@ -961,38 +961,13 @@ def _build_article_doc(
         text_node(" — ваши комментарии очень помогли уточнить аргумент.")
     )
 
-    # Inline math is a top-level block per our content schema — not an
-    # inline node — so we render it as a separate block here. The
-    # surrounding paragraphs read naturally without it.
-    inline_math_lead = paragraph(
-        [
-            text_node("Если коротко: модель оценивает вероятность данных как "),
-            text_node(inline_math, marks=[{"type": "code"}]),
-            text_node(", оптимизируя её по параметрам "),
-            text_node("θ", marks=[{"type": "italic"}]),
-            text_node(" нелинейным образом."),
-        ]
-    )
-    inline_math_block = math_block(inline_math, display=False)
-
     return doc(
         [
             heading(1, title),
-            paragraph(
-                [
-                    text_node(intro),
-                    text_node(" Подробнее ниже — с акцентом на "),
-                    text_node("формальные предпосылки", marks=[{"type": "bold"}]),
-                    text_node(" и "),
-                    text_node("эмпирическую базу", marks=[{"type": "italic"}]),
-                    text_node("."),
-                ]
-            ),
+            paragraph([text_node(intro)]),
             heading(2, "Формализм"),
             paragraph([text_node(formula_intro)]),
             math_block(formula_latex, display=True),
-            inline_math_lead,
-            inline_math_block,
             callout("info", callout_text),
             heading(2, "Поведенческие предсказания"),
             bullet_list(bullets),
@@ -1156,6 +1131,76 @@ def _slugify_for_seed(value: str) -> str:
     )
 
 
+_DISCUSSION_OPENERS: list[tuple[str, str, list[str]]] = [
+    (
+        "Что обсуждаем здесь",
+        "Сюда идут открытые вопросы по «{section}», которые не тянут на"
+        " отдельную статью, но заслуживают разбора. Тема ветки — {topic}.",
+        [
+            "Какие модели/подходы вам кажутся недооценёнными?",
+            "Есть ли свежие препринты, которые стоит разобрать?",
+            "Где видите главные методологические дыры?",
+            "Любимые negative results — пишите, разберём.",
+        ],
+    ),
+    (
+        "О чём тред",
+        "Соберём в одном месте разговоры про «{topic}» в контексте"
+        " «{section}» — без нужды заводить статью. Формат — свободный,"
+        " от полевых наблюдений до статей.",
+        [
+            "Какие эмпирические результаты застряли у вас в голове за последний год?",
+            "Что вы бы поменяли в стандартном pipeline под эту задачу?",
+            "Какие open questions пока не имеют ответа даже приблизительно?",
+        ],
+    ),
+    (
+        "Формат обсуждения",
+        "Тред-агрегатор по «{topic}»: ссылки, спорные тезисы, свежие"
+        " попадания в arXiv. «{section}» — широкая тема, поэтому уместно"
+        " всё, что развивает разговор.",
+        [
+            "Что читаете сейчас по теме — фон / core / бонус?",
+            "Какие результаты сомнительны и почему?",
+            "Есть ли методики, которые пора списать и заменить?",
+        ],
+    ),
+    (
+        "О чём тут говорим",
+        "Открываем ветку по «{topic}» в разделе «{section}». Основная"
+        " идея — держать конструктив и делиться конкретикой: код, данные,"
+        " ссылки, отзывы.",
+        [
+            "Есть ли reproducibility-issue, которые вас беспокоят?",
+            "Какие подходы кажутся модными, но плохо обоснованными?",
+            "Что бы вы посоветовали новичку в этой узкой теме?",
+        ],
+    ),
+    (
+        "Про что этот тред",
+        "«{topic}» — компактная плитка внутри «{section}». Здесь удобно"
+        " обсуждать шероховатости, о которых не всегда хочется писать"
+        " отдельно: приёмы, привычки, лайфхаки.",
+        [
+            "Как вы выбираете гиперпараметры под задачу?",
+            "Какие библиотеки/подходы вам кажутся underrated?",
+            "На что уходит больше всего времени — препроцессинг, валидация, отчётность?",
+        ],
+    ),
+    (
+        "Формат",
+        "Здесь — обмен наблюдениями и мыслями по «{topic}». Раздел"
+        " «{section}» большой, так что не стесняйтесь бросать даже"
+        " смежные ссылки — модерация лояльная.",
+        [
+            "Что в этой теме реально мешает делать хорошую науку?",
+            "Какие критерии качества результата вы применяете?",
+            "Что бы вы разобрали в отдельной статье, будь у вас время?",
+        ],
+    ),
+]
+
+
 async def make_discussion_doc(
     db: AsyncSession,
     *,
@@ -1179,27 +1224,22 @@ async def make_discussion_doc(
             " развить его и тут."
         )
     )
+    variant_idx = zlib.crc32(seed_slug.encode()) % len(_DISCUSSION_OPENERS)
+    variant_heading, variant_body, variant_bullets = _DISCUSSION_OPENERS[variant_idx]
     return doc(
         [
-            heading(2, "Что обсуждаем здесь"),
+            heading(2, variant_heading),
             paragraph(
                 [
                     text_node(
-                        f"Тред собран для свободных разговоров в рамках"
-                        f" «{section_title}». Тема — {topic_title.lower()}."
-                        " Делимся ссылками, гипотезами, новостями. Главное —"
-                        " держать конструктив и приводить аргументы."
+                        variant_body.format(
+                            section=section_title,
+                            topic=topic_title.lower(),
+                        )
                     )
                 ]
             ),
-            bullet_list(
-                [
-                    "Какие модели/подходы вам кажутся недооценёнными?",
-                    "Есть ли свежие препринты, которые стоит разобрать?",
-                    "Где видите главные методологические дыры?",
-                    "Любимые negative results — пишите, разберём.",
-                ]
-            ),
+            bullet_list(variant_bullets),
             image_block(
                 img,
                 alt="Иллюстрация к теме",
@@ -1233,6 +1273,110 @@ async def make_discussion_doc(
     )
 
 
+_HELP_SCENARIOS: list[tuple[str, str, str, list[str]]] = [
+    (
+        "Столкнулся с тем, что pipeline на fit падает без явной причины:"
+        " данные грузятся, shape'ы совпадают, но модель ругается на"
+        " NaN/inf. Локально не воспроизвожу, у коллег — то же самое.",
+        "import numpy as np\n"
+        "from sklearn.linear_model import Ridge\n\n"
+        "X = np.random.randn(120, 8)\n"
+        "y = np.random.randn(120)\n"
+        "model = Ridge(alpha=1.0).fit(X, y)\n"
+        "# на реальных данных следующая строка кидает\n"
+        "# ConvergenceWarning + ValueError\n"
+        "pred = model.predict(X[:10])\n",
+        "python",
+        [
+            "Перепроверил типы и shape входов",
+            "Сравнил с прошлой рабочей версией кода",
+            "Уменьшил alpha, поменял solver",
+            "Перезапустил env с pin-нутыми версиями зависимостей",
+        ],
+    ),
+    (
+        "Ищу воспроизводимый бенчмарк для baseline: тестируем метод на"
+        " своих данных, но нет уверенности, что делаем сравнение честно."
+        " Хочется свести к типовой процедуре, желательно с готовым кодом.",
+        "from sklearn.model_selection import KFold, cross_val_score\n"
+        "import numpy as np\n\n"
+        "kf = KFold(n_splits=5, shuffle=True, random_state=42)\n"
+        "scores = cross_val_score(model, X, y, cv=kf, scoring='r2')\n"
+        "print(f'R2 = {np.mean(scores):.3f} ± {np.std(scores):.3f}')\n",
+        "python",
+        [
+            "Есть ли канонические train/test split'ы для этой задачи?",
+            "Какие метрики принято репортить (median vs mean, IQR)?",
+            "Как учитывать subject-level leakage при cross-validation?",
+        ],
+    ),
+    (
+        "Гружу большой датасет — MemoryError на этапе feature-extraction."
+        " chunk'ать пробовал, но теряю статистику по всему объёму. Есть"
+        " идеи как балансировать между памятью и точностью?",
+        "for i, chunk in enumerate(pd.read_csv(path, chunksize=50_000)):\n"
+        "    features.append(extract(chunk))\n"
+        "    # accumulate global stats без full load\n"
+        "    stats.update(chunk)\n"
+        "features = pd.concat(features, ignore_index=True)\n",
+        "python",
+        [
+            "Пробовал chunksize, dtype-оптимизации, dask — что ещё?",
+            "Есть ли способ сохранять промежуточные результаты на диск?",
+            "Не смотрел polars/pyarrow — стоит переходить?",
+        ],
+    ),
+    (
+        "Настроил CI для проекта, но интеграционные тесты нестабильны:"
+        " один и тот же коммит проходит/падает в 30% случаев. Не могу"
+        " понять что flake'ит — код или инфра.",
+        "@pytest.mark.integration\n"
+        "async def test_pipeline(client):\n"
+        "    r = await client.post('/api/predict', json={'x': [1, 2, 3]})\n"
+        "    assert r.status_code == 200\n"
+        "    # иногда падает на timeout, иногда — на assertion error\n",
+        "python",
+        [
+            "Есть ли инструменты, которые находят flaky-тесты по истории CI?",
+            "Как правильно писать retry-логику, не маскируя реальные баги?",
+            "Что делать с DB fixtures — testcontainers, transaction rollback, что-то ещё?",
+        ],
+    ),
+    (
+        "Разворачиваю сервис на арендованный GPU-сервер — модель работает"
+        " локально на CPU, но на CUDA падает с out-of-memory даже на"
+        " маленьком batch. Что можно проверить?",
+        "import torch\n"
+        "model = model.to('cuda')\n"
+        "for batch in loader:\n"
+        "    with torch.autocast('cuda', dtype=torch.float16):\n"
+        "        out = model(batch.to('cuda'))\n"
+        "    # OOM даже при batch_size=1\n",
+        "python",
+        [
+            "Проверить нужно ли включить gradient checkpointing?",
+            "Какие библиотеки помогают профилировать VRAM?",
+            "Стоит ли пробовать mixed-precision или сразу int8?",
+        ],
+    ),
+    (
+        "Пытаюсь распараллелить тяжёлый анализ на несколько ядер, но"
+        " ускорения почти нет — multiprocessing даёт +30% вместо ожидаемых"
+        " x4. Похоже упираюсь в что-то не то, что казалось.",
+        "from multiprocessing import Pool\n"
+        "with Pool(processes=4) as pool:\n"
+        "    results = pool.map(analyze, chunks)\n"
+        "# наблюдается: 4 ядра активны, но wallclock лишь чуть меньше\n",
+        "python",
+        [
+            "Может быть GIL при передаче больших объектов?",
+            "Что лучше — Pool.map, ProcessPoolExecutor или joblib?",
+            "Есть ли смысл посмотреть в сторону ray/dask для этой задачи?",
+        ],
+    ),
+]
+
+
 async def make_help_doc(
     db: AsyncSession,
     *,
@@ -1255,39 +1399,19 @@ async def make_help_doc(
     expert_mention_para.append(
         text_node(", вы вроде сталкивались с похожим.")
     )
+    scenario_idx = zlib.crc32(seed_slug.encode()) % len(_HELP_SCENARIOS)
+    body, code_snippet, code_lang, tried_bullets = _HELP_SCENARIOS[scenario_idx]
     return doc(
         [
             paragraph(
                 [
-                    text_node(
-                        f"Привет! Нужен совет по «{section_title}». Сейчас"
-                        " воспроизводимый случай: данные грузятся, но pipeline"
-                        " падает на стадии fit. Уже потратил несколько часов на"
-                        " чтение исходников — кажется, проблема не в данных."
-                    )
+                    text_node(f"Привет! Нужен совет по «{section_title}». {body}")
                 ]
             ),
             heading(3, "Минимальный воспроизводимый пример"),
-            code_block(
-                "python",
-                "import numpy as np\n"
-                "from sklearn.linear_model import Ridge\n\n"
-                "X = np.random.randn(120, 8)\n"
-                "y = np.random.randn(120)\n"
-                "model = Ridge(alpha=1.0).fit(X, y)\n"
-                "# на реальных данных следующая строка кидает\n"
-                "# ConvergenceWarning + ValueError\n"
-                "pred = model.predict(X[:10])\n",
-            ),
-            heading(3, "Что уже пробовал"),
-            bullet_list(
-                [
-                    "Перепроверил типы и shape входов",
-                    "Сравнил с прошлой рабочей версией кода",
-                    "Уменьшил alpha, поменял solver",
-                    "Перезапустил env с pin-нутыми версиями зависимостей",
-                ]
-            ),
+            code_block(code_lang, code_snippet),
+            heading(3, "Что уже пробовал / хочу спросить"),
+            bullet_list(tried_bullets),
             image_block(
                 img,
                 alt="Скриншот ошибки",
@@ -1302,6 +1426,54 @@ async def make_help_doc(
             paragraph(expert_mention_para),
         ]
     )
+
+
+_FLOOD_OPENERS: list[tuple[str, str, str, str]] = [
+    (
+        "Тред без темы для «{section}»: мемы, скрины из статей, кривые"
+        " графики. Правило одно — без холивара.",
+        "Очередной мем уровня journal-club.",
+        "Реакция на reviewer 2",
+        "«Главный шаг в любом анализе — кофе.» — local wisdom",
+    ),
+    (
+        "Курилка «{section}». Кидайте сюда факапы, tweet'ы от известных"
+        " учёных, странные плоты. Всё, что не тянет на статью.",
+        "Кривой figure — тот случай, когда авторы явно спешили к дедлайну.",
+        "Когда peer review принял статью с прошлой недели",
+        "«Rigor is what happens after the deadline.» — anonymous PhD",
+    ),
+    (
+        "Пятничная ветка для «{section}»: делимся тем, что рассмешило за"
+        " неделю. Скрины из slack'ов, sci-hub цитаты, странные ключевые"
+        " слова из грантов.",
+        "Стандартный ландшафт открытого офиса нашей лабы.",
+        "Когда grant application прошёл первый tier",
+        "«Все статьи пишутся в последние 48 часов дедлайна.» — local proverb",
+    ),
+    (
+        "Флуд-тред «{section}»: подписи из твиттера, картинки из мемов,"
+        " ссылки на смешные препринты. Всё, что не заслуживает отдельной"
+        " ветки, но заслуживает улыбки.",
+        "Когда график из статьи неожиданно красивый — приятно.",
+        "Reviewer после чтения abstract",
+        "«Two graduate students walk into a lab — the punchline is on r/PhD.»",
+    ),
+    (
+        "«{section}»: место для sci-news, gif'ов из конференций, шуток"
+        " про peer review. Без выяснения кто круче — Python или R.",
+        "Утро понедельника, коллеги в лабе, вид сзади.",
+        "Ошибка на 12-часу отладки: закат солнца вручную",
+        "«Every plot is a story — some just have plot twists.»",
+    ),
+    (
+        "Тред для нерабочих постов по теме «{section}»: смешные скрины,"
+        " ассоциации, забавные paper titles. Формат — свободный.",
+        "Когда plot внезапно сходится к нужному значению.",
+        "Реакция на reviewer 2, вторая часть",
+        "«Правильный анализ данных — тот, который переживёт reviewer 2.»",
+    ),
+]
 
 
 async def make_flood_doc(
@@ -1326,28 +1498,22 @@ async def make_flood_doc(
         if i < len(mentions) - 1:
             mention_para.append(text_node(", "))
     mention_para.append(text_node(" — на правах вечного флуда :)"))
+    variant_idx = zlib.crc32(seed_slug.encode()) % len(_FLOOD_OPENERS)
+    intro, img_caption, gif_alt, quote_text = _FLOOD_OPENERS[variant_idx]
     return doc(
         [
             paragraph(
-                [
-                    text_node(
-                        f"Лёгкий тред для «{section_title}». Мемы, шутки,"
-                        " sci-news краем глаза. По правилам форума: без"
-                        " холивара."
-                    )
-                ]
+                [text_node(intro.format(section=section_title))]
             ),
             paragraph(mention_para),
             image_block(
                 img,
                 alt="Картинка для настроения",
-                caption="Очередной мем уровня journal-club.",
+                caption=img_caption,
                 seed=img_seed,
             ),
-            gif_block(gif, alt="Реакция на reviewer 2", seed=gif_seed),
-            quote_block(
-                "«Главный шаг в любом анализе — кофе.» — local wisdom",
-            ),
+            gif_block(gif, alt=gif_alt, seed=gif_seed),
+            quote_block(quote_text),
             paragraph(
                 [
                     text_node(
@@ -2023,7 +2189,6 @@ async def create_articles(
             link_href=blueprint["link_href"],
             link_text=blueprint["link_text"],
             conclusion=blueprint["conclusion"],
-            inline_math=blueprint["inline_math"],
         )
 
         article, _ = await articles_svc.create_article(

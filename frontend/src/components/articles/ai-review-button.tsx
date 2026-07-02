@@ -91,8 +91,12 @@ export function AIReviewButton({ articleId }: Props) {
         <DialogHeader>
           <DialogTitle>AI обзор статьи</DialogTitle>
           <DialogDescription>
-            MVP: LLM-вызов — заглушка. После подключения OpenRouter будет
-            реальный обзор.
+            Обзор сгенерирует ваша LLM через OpenRouter (укажите ключ в{" "}
+            <a href="/me/credentials" className="underline">
+              /me/credentials
+            </a>
+            ). Результат появится в блоке «AI обзоры» под статьёй; оригинал не
+            меняется.
           </DialogDescription>
         </DialogHeader>
 
