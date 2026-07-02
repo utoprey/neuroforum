@@ -10,11 +10,12 @@ test.use({
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
 })
 
-const SITE = 'http://193.180.210.78:3000'
+const SITE = process.env.E2E_SITE ?? 'http://localhost:3000'
+const API = process.env.E2E_API ?? 'http://localhost:8000'
 
 test('mobile snapshots', async ({ page, request }) => {
-  // Login alice via API so we can see logged-in state
-  const r = await request.post(`http://193.180.210.78:8000/api/v1/auth/login`, {
+  // Login as a seed admin so we can see logged-in state
+  const r = await request.post(`${API}/api/v1/auth/login`, {
     data: { username_or_email: 'alice_neuro', password: 'password123' },
   })
   const { access_token, refresh_token } = await r.json()
@@ -47,7 +48,7 @@ test('mobile snapshots', async ({ page, request }) => {
   await page.screenshot({ path: '/tmp/mobile-section.png', fullPage: false })
 
   // Article view
-  const arts = await (await request.get(`http://193.180.210.78:8000/api/v1/users/alice_neuro/articles?limit=1`)).json()
+  const arts = await (await request.get(`${API}/api/v1/users/alice_neuro/articles?limit=1`)).json()
   const aid = arts[0].id
   await page.goto(`${SITE}/articles/${aid}`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(2500)

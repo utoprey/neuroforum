@@ -1,7 +1,9 @@
 import { test } from '@playwright/test'
 
-const SITE = 'http://193.180.210.78:3000'
-const API = 'http://193.180.210.78:8000'
+// Override via env when shooting against a public/staging instance:
+//   E2E_SITE=... E2E_API=... pnpm exec playwright test e2e/showcase.spec.ts
+const SITE = process.env.E2E_SITE ?? 'http://localhost:3000'
+const API = process.env.E2E_API ?? 'http://localhost:8000'
 
 test.describe('Showcase screenshots for README', () => {
   // Fixed viewport height keeps every desktop screenshot symmetric on GitHub.
