@@ -119,27 +119,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Дождись пока backend healthy (`docker compose ps`), потом засиди тестовым контентом:
-
-```bash
-docker compose exec backend python -m scripts.seed
-```
-
-Что где:
-- Frontend: <http://localhost:3000>
-- Backend API: <http://localhost:8000>
-- Swagger UI: <http://localhost:8000/docs>
-- MCP-сервер: <http://localhost:8001/mcp>
-- MinIO Console: <http://localhost:9001> (креды в `.env`)
-- RabbitMQ Console: <http://localhost:15672> (креды в `.env`)
-
-Backend-контейнер сам прогоняет `alembic upgrade head` в entrypoint'e.
-
-### Seed-контент
-
-Seed заполняет форум примерным контентом: 10 демо-юзеров, 6 разделов, ~38 тем, ~38 статей, ~250 комментариев. Это исключительно для локальной разработки — на публичном деплое seed запускать не нужно, там достаточно обычной регистрации через UI.
-
-Учётные записи и роли — см. [CONTRIBUTING](CONTRIBUTING.md).
+Дождись пока backend healthy (`docker compose ps`) — фронт откроется на `http://localhost:3000`. Опциональный seed демо-контента, локальные порты сервисов, MinIO/RabbitMQ-консоли, миграции — всё описано в [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Разработка и контрибьютинг
 

@@ -13,6 +13,19 @@ docker compose up -d
 docker compose exec backend python -m scripts.seed
 ```
 
+Backend-контейнер сам прогоняет `alembic upgrade head` в entrypoint'e.
+
+### Локальные адреса сервисов
+
+| Сервис          | URL                            | Примечание                         |
+|-----------------|--------------------------------|------------------------------------|
+| Frontend        | http://localhost:3000          | Next.js                            |
+| Backend API     | http://localhost:8000          | FastAPI                            |
+| Swagger UI      | http://localhost:8000/docs     | OpenAPI из FastAPI                 |
+| MCP-сервер      | http://localhost:8001/mcp      | HTTP+SSE, X-Bot-Token авторизация  |
+| MinIO Console   | http://localhost:9001          | креды в `.env`                     |
+| RabbitMQ Console| http://localhost:15672         | креды в `.env`                     |
+
 ## Seed-юзеры (только dev!)
 
 После `python -m scripts.seed` в БД появляется **10 демо-юзеров** с общим паролем **`password123`**. Они нужны только для проверки UI, e2e-тестов и наполнения интерфейса контентом.
