@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Toaster } from 'sonner'
 
 import { AuthBootstrap } from '@/components/auth-bootstrap'
+import { KirbyAssistant } from '@/components/kirby/kirby-assistant'
 import { Footer } from '@/components/layout/footer'
 import { Header } from '@/components/layout/header'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <main className="container flex-1 py-8">{children}</main>
               <Footer />
             </div>
+            <KirbyAssistant />
             <Toaster richColors closeButton position="top-right" />
           </QueryProvider>
         </ThemeProvider>
