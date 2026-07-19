@@ -10,8 +10,10 @@ __pycache__/
 develop-eggs/
 downloads/
 eggs/
-lib/
-lib64/
+# Python venv dirs — anchor with leading slash so we don't nuke
+# frontend/src/lib/ or any other legitimate `lib/` directory in the tree.
+/lib/
+/lib64/
 parts/
 sdist/
 var/
