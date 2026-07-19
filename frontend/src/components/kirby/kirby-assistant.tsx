@@ -4,7 +4,6 @@ import { X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { KirbySvg } from './kirby-svg'
@@ -99,19 +98,18 @@ export function KirbyAssistant() {
         </div>
       ) : null}
 
-      <Button
+      <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         data-testid="kirby-button"
-        variant="ghost"
         aria-label={open ? 'Закрыть подсказку' : 'Показать подсказку Кирби'}
         className={cn(
-          'pointer-events-auto h-14 w-14 rounded-full border border-border bg-background p-1 shadow-md transition hover:scale-105 hover:bg-background',
+          'pointer-events-auto flex h-20 w-20 items-center justify-center rounded-full border border-border bg-background p-1.5 shadow-lg transition hover:scale-105',
           !open && 'animate-kirby-bounce',
         )}
       >
         <KirbySvg className="h-full w-full" />
-      </Button>
+      </button>
     </div>
   )
 }
