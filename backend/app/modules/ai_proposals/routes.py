@@ -11,7 +11,6 @@ from app.modules.ai_proposals.deps import (
     get_ai_proposal_repository,
     get_ai_proposal_service,
 )
-from app.modules.ai_proposals.repository import AIProposalRepository
 from app.modules.ai_proposals.exceptions import (
     NotAllowedToPropose,
     ProposalAlreadyDecided,
@@ -22,6 +21,7 @@ from app.modules.ai_proposals.models import (
     AIProposalStatus,
     ArticleAIProposal,
 )
+from app.modules.ai_proposals.repository import AIProposalRepository
 from app.modules.ai_proposals.schemas import (
     AIProposalContentUpdate,
     AIProposalCreate,

@@ -57,7 +57,7 @@ export function KirbyAssistant() {
         <div
           role="dialog"
           aria-label="Подсказка Кирби"
-          className="pointer-events-auto w-72 max-w-[80vw] rounded-2xl border border-border bg-background p-4 shadow-lg animate-in fade-in slide-in-from-bottom-2"
+          className="pointer-events-auto w-[calc(100vw-2rem)] max-w-xs rounded-2xl border border-border bg-background p-4 shadow-lg animate-in fade-in slide-in-from-bottom-2 sm:w-72"
         >
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm leading-snug text-foreground">{tip.text}</p>
@@ -104,7 +104,7 @@ export function KirbyAssistant() {
         data-testid="kirby-button"
         aria-label={open ? 'Закрыть подсказку' : 'Показать подсказку Кирби'}
         className={cn(
-          'pointer-events-auto flex h-20 w-20 items-center justify-center rounded-full border border-border bg-background p-1.5 shadow-lg transition hover:scale-105',
+          'pointer-events-auto flex h-16 w-16 items-center justify-center rounded-full border border-border bg-background p-1.5 shadow-lg transition hover:scale-105 sm:h-20 sm:w-20',
           !open && 'animate-kirby-bounce',
         )}
       >

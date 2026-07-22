@@ -25,6 +25,6 @@ else:
     dramatiq.set_broker(RabbitmqBroker(url=_rabbit_url))
 
 # Importing each module registers its @dramatiq.actor decorators.
-from app.workers import ai_proposals, attachments  # noqa: E402,F401
+from app.workers import ai_proposals, attachments  # noqa: E402
 
 __all__ = ["ai_proposals", "attachments"]

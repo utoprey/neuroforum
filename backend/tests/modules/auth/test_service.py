@@ -91,7 +91,7 @@ async def test_authenticate_inactive_user(
     user_service: UserService,
     db_session: AsyncSession,
 ) -> None:
-    uid, pw = await _make_user(user_service, username="dead2")
+    _uid, pw = await _make_user(user_service, username="dead2")
     # Mark inactive via raw UPDATE so we don't depend on a service helper.
     from sqlalchemy import text
 

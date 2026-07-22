@@ -6,6 +6,8 @@ the production migrations instead — used by tests that need GENERATED
 columns / GIN-trgm indexes / etc. See CLAUDE.md > Conventions.
 """
 
+# ruff: noqa: E402  -- env setup must happen before app.* imports
+
 from __future__ import annotations
 
 import importlib

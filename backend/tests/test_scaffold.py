@@ -26,7 +26,6 @@ from app.core.security import (
 )
 from app.main import create_app
 
-
 # --- App factory ------------------------------------------------------------
 
 

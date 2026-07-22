@@ -19,7 +19,6 @@ from app.modules.ai_proposals.exceptions import (
     ProposalExpired,
     ProposalNotFound,
 )
-from app.modules.articles.exceptions import ContentInvalid
 from app.modules.ai_proposals.models import (
     AIProposalAction,
     AIProposalStatus,
@@ -27,6 +26,7 @@ from app.modules.ai_proposals.models import (
 from app.modules.ai_proposals.repository import AIProposalRepository
 from app.modules.ai_proposals.schemas import AIProposalCreate
 from app.modules.ai_proposals.service import AIProposalService
+from app.modules.articles.exceptions import ContentInvalid
 from app.modules.articles.models import Article
 from app.modules.articles.repository import ArticleRepository
 from app.modules.articles.schemas import ArticleCreate

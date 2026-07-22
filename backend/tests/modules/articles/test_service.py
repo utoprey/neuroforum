@@ -162,7 +162,7 @@ async def test_create_invalid_content_rejected(
     users_svc: UserService,
     db_session: AsyncSession,
 ) -> None:
-    _admin, user, topic_id = await _make_topic(
+    _admin, _user, _topic_id = await _make_topic(
         forum_svc, users_svc, db_session, section_slug="s2"
     )
     # ``DocSchema`` rejects unknown block types at parse time.

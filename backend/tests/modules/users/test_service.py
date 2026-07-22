@@ -6,11 +6,13 @@ import pytest
 from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.articles.models import Article
 from app.modules.users.exceptions import (
     EmailTaken,
     UsernameTaken,
     UserNotFound,
 )
+from app.modules.users.models import User
 from app.modules.users.repository import UserRepository
 from app.modules.users.schemas import ProfileUpdate, UserCreate
 from app.modules.users.service import UserService
@@ -168,7 +170,7 @@ async def test_search_users_empty_input_returns_empty(svc: UserService) -> None:
 
 async def _seed_topic_article_message(
     db_session: AsyncSession, svc: UserService, *, username: str, text_value: str
-) -> tuple[UserService, "User", "Article"]:
+) -> tuple[UserService, User, Article]:
     """Helper: build a published article + a message authored by ``username``.
 
     Kept inline (rather than as a fixture) so the test file stays
